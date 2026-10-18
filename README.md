@@ -13,6 +13,12 @@ Sistema de gestão de ordens de serviço da Beira Premium Garage (Beira, Moçamb
 2. `firebase-config.js`: configuração do projeto Firebase da Beira + chave VAPID.
 3. Regras da base de dados: Firebase Console → Firestore → *Regras*: cole `firestore.rules` e publique.
 
+## Ecrãs e instalação
+
+Funciona em iPhone, Android, tablet e computador. O ecrã adapta-se: telemóvel com barra de separadores em baixo, tablet com duas colunas, computador com menu lateral. As margens de segurança do notch, da ilha dinâmica, do furo da câmara e da barra inicial são respeitadas em retrato e em paisagem (`env(safe-area-inset-*)`, nas variáveis `--sat/--sab/--sal/--sar`).
+
+Para instalar no ecrã inicial: no Android, menu do Chrome → *Instalar app*; no iPhone/iPad, *Partilhar* → *Adicionar ao ecrã inicial*. O ícone é o da Beira Premium Garage (`icon-192/512`, com versão *maskable* para o Android recortar sem cortar o carro).
+
 ## Avisos com a app fechada (push)
 
 Um robô gratuito do GitHub (Actions) corre de hora em hora, das 07h às 18h (Maputo), vê as O.S. na base de dados e envia push para os aparelhos registados. Avisa: entrega atrasada / hoje / amanhã, lembretes vencidos, viatura pronta há 2+ dias sem levantar, orçamento sem resposta há 2+ dias.
