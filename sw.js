@@ -1,4 +1,4 @@
-const C="beira-os-v4";
+const C="beira-os-v5";
 /* Push com a app fechada (Firebase Cloud Messaging) */
 try{
  self.window=self;
