@@ -2,16 +2,17 @@
 
 Sistema de gestão de ordens de serviço da Beira Premium Garage (Beira, Moçambique). App instalável (PWA), derivada do WR OS, com marca, cores e serviços próprios da Beira.
 
-## Estado atual
+Publicada em <https://alcapone69-al.github.io/beira-os/>.
 
-- Funciona já em **modo local** (os dados ficam só no aparelho) até o Firebase ser configurado.
-- A base de dados da WR (`wr-oficina`) **não** é usada aqui. A Beira tem de ter o seu próprio projeto Firebase.
+## Nuvem
+
+Projeto Firebase próprio: **`beira-oficina`** (separado do `wr-oficina` da WR). Base de dados Firestore em `africa-south1` (Joanesburgo), a região mais perto da Beira. As regras em `firestore.rules` estão publicadas e a configuração está em `firebase-config.js`.
 
 ## A preencher
 
-1. `index.html` → `var OFICINA`: telefone, morada e horário reais da oficina.
-2. `firebase-config.js`: configuração do projeto Firebase da Beira + chave VAPID.
-3. Regras da base de dados: Firebase Console → Firestore → *Regras*: cole `firestore.rules` e publique.
+1. `index.html` → `var OFICINA`: a morada real da oficina na Beira (sai nos PDFs e no WhatsApp). O telefone é o mesmo da WR, por ser do mesmo dono.
+2. Contas no Firebase (*Authentication › Users › Add user*): `admin@beira-oficina.mz` e `colaborador@beira-oficina.mz`, cada uma com a sua palavra-passe.
+3. Segredo `FIREBASE_SERVICE_ACCOUNT` no GitHub, para os avisos push (ver abaixo).
 
 ## Dois acessos: administrador e colaborador
 
