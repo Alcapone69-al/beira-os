@@ -13,6 +13,15 @@ Sistema de gestão de ordens de serviço da Beira Premium Garage (Beira, Moçamb
 2. `firebase-config.js`: configuração do projeto Firebase da Beira + chave VAPID.
 3. Regras da base de dados: Firebase Console → Firestore → *Regras*: cole `firestore.rules` e publique.
 
+## Dois acessos: administrador e colaborador
+
+A app entra por **nome de utilizador** e palavra-passe (nenhum e-mail aparece). Por trás, cada utilizador é uma conta do Firebase com o e-mail `<utilizador>@beira-oficina.mz`.
+
+- **admin** — vê e faz tudo: valores, relatórios, equipa, apagar O.S.
+- **colaborador** — vê as viaturas e os serviços: abre O.S., muda estados e consulta o estoque. Não vê valores, relatórios nem a equipa.
+
+O administrador cria e suspende colaboradores dentro da app (Conta › Utilizadores). Depois de criar o utilizador na app, a conta tem de ser criada no Firebase: *Authentication › Users › Add user*, com o e-mail `<utilizador>@beira-oficina.mz` e a palavra-passe a entregar à pessoa.
+
 ## Ecrãs e instalação
 
 Funciona em iPhone, Android, tablet e computador. O ecrã adapta-se: telemóvel com barra de separadores em baixo, tablet com duas colunas, computador com menu lateral. As margens de segurança do notch, da ilha dinâmica, do furo da câmara e da barra inicial são respeitadas em retrato e em paisagem (`env(safe-area-inset-*)`, nas variáveis `--sat/--sab/--sal/--sar`).

@@ -444,6 +444,7 @@ body.kb{padding-bottom:24px}
 .demo-hint b{color:var(--ink)}
 .role{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
 .role.r-proprietario{background:var(--grad);color:#fff;border-color:transparent}
+.role.r-colaborador{color:var(--s-and);background:var(--s-and-bg);border-color:transparent}
 .role.r-gerente{color:var(--s-orc);background:var(--s-orc-bg);border-color:transparent}
 .role.r-recepcao{color:var(--s-and);background:var(--s-and-bg);border-color:transparent}
 .role.r-mecanico{color:var(--s-pend);background:var(--s-pend-bg);border-color:transparent}
@@ -617,13 +618,14 @@ P.down=P.up;
 function ic(n,cls){return '<svg class="i '+(cls||"")+(n==="down"?" flip":"")+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+P[n]+'</svg>'}
 
 /* ===== funções e permissões ===== */
-var ROLES={proprietario:"Proprietário",gerente:"Gerente",recepcao:"Recepção",mecanico:"Mecânico"};
-var ROLEDESC={proprietario:"Vê e faz tudo. Gere a equipa, os relatórios e os valores.",gerente:"Vê e faz tudo, menos gerir a equipa.",recepcao:"Abre O.S., trata de clientes, orçamentos e pagamentos. Não vê relatórios nem apaga O.S.",mecanico:"Só vê as obras atribuídas a si e os seus afazeres. Sem valores nem contactos do cliente."};
+var ROLES={proprietario:"Administrador",gerente:"Gerente",recepcao:"Recepção",mecanico:"Mecânico",colaborador:"Colaborador"};
+var ROLEDESC={colaborador:"Vê as viaturas e os serviços: abre O.S., muda estados e consulta o estoque. Não vê valores, relatórios nem a equipa.",proprietario:"Vê e faz tudo. Gere a equipa, os relatórios e os valores.",gerente:"Vê e faz tudo, menos gerir a equipa.",recepcao:"Abre O.S., trata de clientes, orçamentos e pagamentos. Não vê relatórios nem apaga O.S.",mecanico:"Só vê as obras atribuídas a si e os seus afazeres. Sem valores nem contactos do cliente."};
 var ALLP=["os.todas","os.criar","os.editar","os.apagar","valores","clientes","relatorios","estoque","estoque.editar","status.finalizar","equipa"];
 var PERM={proprietario:ALLP,gerente:ALLP.filter(function(p){return p!=="equipa"}),
+  colaborador:["os.todas","os.criar","os.editar","estoque","status.finalizar"],
   recepcao:["os.todas","os.criar","os.editar","valores","clientes","estoque","estoque.editar","status.finalizar"],
   mecanico:["estoque"]};
-var ACT_PERM={"sheet-sign":"os.editar",savesign:"os.editar",clearsign:"os.editar","exp-os":"relatorios","exp-pag":"relatorios","exp-stk":"relatorios",backup:"equipa",create:"os.criar",saveedit:"os.editar",edit:"os.editar",askdelete:"os.apagar",confirmdelete:"os.apagar","sheet-orc":"valores","sheet-doc":"valores","sheet-pay":"valores",addorc:"valores",delorc:"valores",aprov:"valores",pdf:"valores",addpay:"valores",delpay:"valores","sheet-stock":"estoque.editar",savestock:"estoque.editar",delstock:"estoque.editar",stk:"estoque.editar",askclear:"equipa",clear:"equipa","sheet-user":"equipa",saveuser:"equipa",askdeluser:"equipa",deluser:"equipa",goteam:"equipa"};
+var ACT_PERM={"sheet-acesso":"equipa",saveacesso:"equipa",askdelacesso:"equipa",delacesso:"equipa","sheet-sign":"os.editar",savesign:"os.editar",clearsign:"os.editar","exp-os":"relatorios","exp-pag":"relatorios","exp-stk":"relatorios",backup:"equipa",create:"os.criar",saveedit:"os.editar",edit:"os.editar",askdelete:"os.apagar",confirmdelete:"os.apagar","sheet-orc":"valores","sheet-doc":"valores","sheet-pay":"valores",addorc:"valores",delorc:"valores",aprov:"valores",pdf:"valores",addpay:"valores",delpay:"valores","sheet-stock":"estoque.editar",savestock:"estoque.editar",delstock:"estoque.editar",stk:"estoque.editar",askclear:"equipa",clear:"equipa","sheet-user":"equipa",saveuser:"equipa",askdeluser:"equipa",deluser:"equipa",goteam:"equipa"};
 var VIEW_PERM={"new":"os.criar",edit:"os.editar",clients:"clientes",rel:"relatorios",team:"equipa"};
 var DEMOPW="beira1234",DEMO={Bruno:{e:"bruno@beira.demo"},Sónia:{e:"sonia@beira.demo"},Helena:{e:"helena@beira.demo"},Rui:{e:"rui@beira.demo"},Paulo:{e:"paulo@beira.demo"}};
 function can(p){return !!(S.me&&PERM[S.me.papel]&&PERM[S.me.papel].indexOf(p)>-1)}
@@ -705,7 +707,10 @@ async function initData(){
   sub("os");sub("estoque");sub("users");
 }
 /* ===== nuvem própria (Firebase, conta única da oficina) ===== */
-var FBU={id:"conta",nome:"Beira Premium Garage",papel:"proprietario",email:"",ativo:true},fbUnsubs=[];
+var UDOM="@beira-oficina.mz";
+function toEmail(v){v=String(v||"").trim().toLowerCase();if(!v)return "";if(v.indexOf("@")>-1)return v;v=v.replace(/\s+/g,"").replace(/[^a-z0-9._-]/g,"");return v?v+UDOM:""}
+function userName(e){e=String(e||"");return e.slice(-UDOM.length)===UDOM?e.slice(0,-UDOM.length):e}
+var FBU={id:"conta",nome:"Administrador",papel:"proprietario",email:"",ativo:true},fbUnsubs=[];
 function fbCfg(){var c=window.WR_FIREBASE;return (!window.claude&&c&&c.apiKey&&c.projectId)?c:null}
 function loadJs(src){return new Promise(function(res,rej){var e=document.createElement("script");e.src=src;e.onload=res;e.onerror=function(){rej(new Error(src))};document.head.appendChild(e)})}
 function fbSub(col){
@@ -714,7 +719,7 @@ function fbSub(col){
     if(col==="os"&&S.mode==="loading")S.mode="cloud";render()},
    function(err){console.warn("db",col,err);if(S.mode==="loading")S.mode="cloud";toast(err&&err.code==="permission-denied"?"Sem permissão na base de dados":"Sem ligação à base de dados");render()});
   fbUnsubs.push(u)}
-function fbStop(){fbUnsubs.forEach(function(u){try{u()}catch(e){}});fbUnsubs=[];S.os=[];S.estoque=[];S.fotos=[];S.config=null}
+function fbStop(){fbUnsubs.forEach(function(u){try{u()}catch(e){}});fbUnsubs=[];S.os=[];S.estoque=[];S.fotos=[];S.config=null;S.acessos=[]}
 async function initCloud(cfg){
   S.users=[FBU];
   try{
@@ -723,8 +728,33 @@ async function initCloud(cfg){
     try{await fs.enablePersistence({synchronizeTabs:true})}catch(e){}
     window.__fbAuth=auth;
     auth.onAuthStateChanged(function(u){
-      if(u){db=fs;FBU.email=u.email||"";S.me=FBU;S.meT=Date.now();S.usersReady=true;S.mode="loading";fbStop();fbSub("os");fbSub("estoque");fbSub("config");setTimeout(function(){if(notifState()==="granted")pushEnable(true)},3000);S.view="home";S.id=null;render(true)}
-      else{fbStop();db=null;S.me=null;S.mode="cloud";S.usersReady=true;render(true)}});
+      if(!u){fbStop();db=null;S.me=null;S.users=[FBU];S.mode="cloud";S.usersReady=true;render(true);return}
+      db=fs;FBU.email=u.email||"";S.usersReady=true;S.mode="loading";
+      var em=String(u.email||"").toLowerCase(),ck="beira_me_"+em;
+      function entrar(me){
+        S.users=[me];S.me=me;S.meT=Date.now();fbStop();
+        fbSub("os");fbSub("estoque");
+        if(me.papel==="proprietario"){fbSub("config");fbSub("acessos")}
+        setTimeout(function(){if(notifState()==="granted")pushEnable(true)},3000);
+        S.view="home";S.id=null;render(true)}
+      function negar(msg){lsSet(ck,null);toast(msg);try{auth.signOut()}catch(e){}}
+      fs.doc("acessos/"+em).get().then(function(d){
+        if(!d.exists){
+          /* sem registo em /acessos: so o administrador passa (as regras so lhe deixam ler /config) */
+          fs.doc("config/dono").get().then(function(){lsSet(ck,{dono:1});entrar(FBU)},function(er){
+            if(er&&er.code==="permission-denied"){negar("Esta conta nao tem acesso a oficina.");return}
+            var k=lsGet(ck,null);if(k&&k.dono){entrar(FBU)}else negar("Sem ligacao a internet. Tente de novo.")});
+          return}
+        var a=d.data()||{};
+        if(a.ativo===false){negar("Acesso suspenso. Fale com o responsavel.");return}
+        var me={id:"u:"+em,nome:a.nome||userName(em),papel:"colaborador",email:em,ativo:true};
+        lsSet(ck,{nome:me.nome});entrar(me)},
+      function(err){
+        if(err&&err.code==="permission-denied"){negar("Esta conta nao tem acesso a oficina.");return}
+        var k=lsGet(ck,null);
+        if(k&&k.dono){entrar(FBU);return}
+        if(k&&k.nome){entrar({id:"u:"+em,nome:k.nome,papel:"colaborador",email:em,ativo:true});return}
+        negar("Sem ligacao a internet. Tente de novo.")})});
   }catch(e){console.warn("cloud",e);S.users=[];toast("Não foi possível iniciar a nuvem. A usar este aparelho.");localLoad()}
 }
 function repoUpdate(col,item,patch){
@@ -1337,15 +1367,15 @@ function viewLogin(){
     '<div class="lerr'+(L.err?" bad":"")+'" role="alert">'+esc(L.err||"")+'</div><button class="btn pri block" data-act="setup">Criar conta do proprietário</button></div>'+
     '<button class="btn block" data-act="demousers">Explorar com contas de exemplo</button></div>';
   var o2=["proprietario","gerente","recepcao","mecanico"],dm=S.users.filter(function(x){return x.demo&&DEMO[x.nome]}).sort(function(x,y){return o2.indexOf(x.papel)-o2.indexOf(y.papel)||String(x.nome).localeCompare(String(y.nome))});
-  return '<div class="login">'+logo+'<h1>Entrar</h1><p class="muted">Entre com o seu e-mail e palavra-passe.</p>'+
-    '<div class="card"><div class="field"><label for="l-e">E-mail</label><input class="in" id="l-e" type="email" inputmode="email" autocapitalize="off" autocomplete="username" spellcheck="false" enterkeyhint="next" value="'+esc(L.email||"")+'"></div>'+
+  return '<div class="login">'+logo+'<h1>Entrar</h1><p class="muted">Entre com o seu utilizador e palavra-passe.</p>'+
+    '<div class="card"><div class="field"><label for="l-e">Utilizador</label><input class="in" id="l-e" type="email" inputmode="email" autocapitalize="off" autocomplete="username" spellcheck="false" enterkeyhint="next" value="'+esc(L.email||"")+'"></div>'+
     '<div class="field"><label for="l-p">Palavra-passe</label><div style="position:relative"><input class="in" id="l-p" type="password" autocomplete="current-password" enterkeyhint="go">'+eye+'</div></div>'+
     '<div class="lerr'+(L.err?" bad":"")+'" role="alert">'+esc(L.err||"")+'</div><button class="btn pri block" data-act="login">Entrar</button>'+
-    '<p class="muted" style="font-size:12.5px;margin-top:10px;text-align:center">'+(fbCfg()?"Conta única da oficina, partilhada pelo tablet e pelo computador.":"Esqueceu a palavra-passe? Peça ao proprietário para a redefinir em Equipa.")+'</p></div>'+
+    '<p class="muted" style="font-size:12.5px;margin-top:10px;text-align:center">'+(fbCfg()?"Administrador ve tudo; colaborador ve as viaturas.":"Esqueceu a palavra-passe? Peça ao proprietário para a redefinir em Equipa.")+'</p></div>'+
     (dm.length?'<div class="demo-hint"><b>Contas de exemplo</b> (palavra-passe '+DEMOPW+')<br>'+dm.map(function(x){return '<button data-act="fill" data-e="'+esc(x.email)+'" style="background:none;border:0;padding:2px 0;color:var(--focus);text-align:left">'+esc(x.email)+'</button> · '+esc(ROLES[x.papel])}).join("<br>")+'</div>':'')+'</div>';
 }
 function doLogin(email,pw,rem){
-  if(window.__fbAuth)return window.__fbAuth.signInWithEmailAndPassword(String(email||"").trim(),pw).then(function(){return {user:FBU}},function(e){var c=(e&&e.code)||"";return {err:/network/.test(c)?"Sem ligação à internet":/too-many/.test(c)?"Muitas tentativas. Aguarde uns minutos":"E-mail ou palavra-passe errados"}});
+  if(window.__fbAuth)return window.__fbAuth.signInWithEmailAndPassword(toEmail(email),pw).then(function(){return {user:FBU}},function(e){var c=(e&&e.code)||"";return {err:/network/.test(c)?"Sem ligação à internet":/too-many/.test(c)?"Muitas tentativas. Aguarde uns minutos":"E-mail ou palavra-passe errados"}});
   var now=Date.now();
   if(S.lock&&now<S.lock)return Promise.resolve({err:"Muitas tentativas. Aguarde "+Math.ceil((S.lock-now)/1000)+" segundos"});
   var u=S.users.filter(function(x){return norm(x.email)===norm(email)&&x.ativo!==false})[0];
@@ -1359,7 +1389,29 @@ window.__wrAuth={ready:function(){return S.usersReady},count:function(){return S
   demoList:function(){var o=["proprietario","gerente","recepcao","mecanico"];return S.users.filter(function(x){return x.demo&&DEMO[x.nome]}).sort(function(x,y){return o.indexOf(x.papel)-o.indexOf(y.papel)||String(x.nome).localeCompare(String(y.nome))}).map(function(x){return {email:x.email,papel:ROLES[x.papel]}})},pw:DEMOPW};
 function mkDemo(){var dl=[["Bruno","proprietario"],["Sónia","gerente"],["Helena","recepcao"],["Rui","mecanico"],["Paulo","mecanico"]];
   return Promise.all(dl.map(function(d){return mkUser(d[0],d[1],DEMO[d[0]].e,DEMOPW,{demo:true})})).then(function(){render(true)})}
+function viewTeamCloud(){
+  var A=(S.acessos||[]).slice().sort(function(a,b){return String(a.nome).localeCompare(String(b.nome))});
+  var r=topbar()+'<section class="sec" style="margin-top:12px"><button class="back" data-act="back">'+ic("back")+'Voltar</button>'+hdr("Utilizadores",A.length+" colaborador(es)",'<button class="btn sm pri" data-act="sheet-acesso">+ Utilizador</button>')+'<div class="list">';
+  r+=A.length?A.map(function(a){
+    return '<button class="rowc" data-act="sheet-acesso" data-id="'+esc(a.id)+'"'+(a.ativo===false?' style="opacity:.55"':'')+'><span class="av">'+esc(ini(a.nome))+'</span><span class="bd"><b>'+esc(a.nome)+'</b><span>'+esc(userName(a.id))+(a.ativo===false?" · acesso suspenso":"")+'</span></span><span class="role r-colaborador">Colaborador</span></button>'}).join(""):
+    '<div class="empty">'+ic("users")+'<b>Ainda sem colaboradores</b>Crie um utilizador para quem trata das viaturas.</div>';
+  r+='</div></section><section class="sec">'+hdr("Como funciona")+'<div class="card perm">'+
+   '<div><span class="role r-proprietario">Administrador</span>'+esc(ROLEDESC.proprietario)+'</div>'+
+   '<div><span class="role r-colaborador">Colaborador</span>'+esc(ROLEDESC.colaborador)+'</div>'+
+   '<div class="muted" style="font-size:13px;margin-top:10px">Para criar um colaborador: 1) toque em <b>+ Utilizador</b> e escreva o nome e o utilizador (ex.: colaborador); 2) no Firebase (Authentication › Users › Add user) crie a conta com o e-mail <b>utilizador'+UDOM+'</b> e uma palavra-passe, e entregue-lhe o utilizador e a palavra-passe. Para suspender o acesso, abra o utilizador e desmarque "Acesso ativo".</div></div></section>';
+  return r;
+}
+function sheetAcesso(a){
+  a=a||{};
+  sheet('<h3>'+(a.id?"Editar utilizador":"Novo utilizador")+'</h3>'+
+   '<div class="field"><label for="a-nome">Nome</label><input class="in" id="a-nome" autocapitalize="words" autocomplete="off" value="'+esc(a.nome)+'"></div>'+
+   '<div class="field"><label for="a-mail">Utilizador (para entrar na app)</label><input class="in" id="a-mail" inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="ex.: colaborador" value="'+esc(userName(a.id||""))+'"'+(a.id?' readonly':'')+'></div><div class="muted" style="font-size:12.5px;margin:-4px 0 10px">No Firebase crie a conta com o e-mail <b>'+esc(a.id||"utilizador"+UDOM)+'</b>.</div>'+
+   (a.id?'<label class="row" style="margin-top:6px;gap:10px;flex-wrap:nowrap"><input type="checkbox" id="a-ativo"'+(a.ativo!==false?" checked":"")+' style="width:20px;height:20px;accent-color:var(--red)"><span>Acesso ativo</span></label>':'')+
+   '<div class="row" style="margin-top:16px"><button class="btn pri" style="flex:1" data-act="saveacesso" data-id="'+esc(a.id||"")+'">Guardar</button>'+(a.id?'<button class="btn danger" data-act="askdelacesso" data-id="'+esc(a.id)+'">Remover</button>':'')+'<button class="btn" data-act="closesheet">Fechar</button></div>');
+  focusFirst();
+}
 function viewTeam(){
+  if(window.__fbAuth)return viewTeamCloud();
   var order=["proprietario","gerente","recepcao","mecanico"];
   var us=S.users.slice().sort(function(a,b){return order.indexOf(a.papel)-order.indexOf(b.papel)||String(a.nome).localeCompare(String(b.nome))});
   var r=topbar()+'<section class="sec" style="margin-top:12px"><button class="back" data-act="back">'+ic("back")+'Voltar</button>'+hdr("Equipa",us.length+" utilizador(es)",'<button class="btn sm pri" data-act="sheet-user">+ Utilizador</button>')+'<div class="list">';
@@ -1371,7 +1423,8 @@ function viewTeam(){
 }
 function sheetConta(){
   var u=S.me;
-  if(window.__fbAuth){sheet('<h3>Conta da oficina</h3><div class="rowc" style="margin-top:10px"><span class="av">'+esc(ini(u.nome))+'</span><span class="bd"><b>'+esc(u.nome)+'</b><span>'+esc(u.email||"")+'</span></span></div><p class="muted" style="font-size:12.5px">Conta única partilhada. Os dados são os mesmos em todos os aparelhos.</p>'+
+  if(window.__fbAuth){sheet('<h3>Conta</h3><div class="rowc" style="margin-top:10px"><span class="av">'+esc(ini(u.nome))+'</span><span class="bd"><b>'+esc(u.nome)+'</b><span>'+esc(userName(u.email||""))+' · '+esc(ROLES[u.papel]||"")+'</span></span></div><p class="muted" style="font-size:12.5px">Os dados sao os mesmos em todos os aparelhos.</p>'+
+   (can("equipa")?'<button class="opt" data-act="goteam"><span>Utilizadores</span>'+ic("users")+'</button>':'')+
    '<button class="opt" data-act="logout"><span>Terminar sessão neste aparelho</span>'+ic("back")+'</button><button class="btn block" style="margin-top:12px" data-act="closesheet">Fechar</button>');return}
   sheet('<h3>Conta</h3><div class="rowc" style="margin-top:10px"><span class="av">'+esc(ini(u.nome))+'</span><span class="bd"><b>'+esc(u.nome)+'</b><span>'+esc(u.email||"")+' · '+esc(ROLES[u.papel])+'</span></span></div>'+
    (can("equipa")?'<button class="opt" data-act="goteam"><span>Equipa e permissões</span>'+ic("users")+'</button>':'')+
@@ -1783,6 +1836,16 @@ document.addEventListener("click",function(e){
     case "exp-pag":expPag();break;
     case "exp-stk":expStk();break;
     case "backup":backupAll();break;
+    case "sheet-acesso":sheetAcesso(el.dataset.id?(S.acessos||[]).filter(function(x){return x.id===el.dataset.id})[0]:null);break;
+    case "saveacesso":{var an=$("#a-nome").value.trim(),ae=toEmail($("#a-mail").value),aa=$("#a-ativo")?$("#a-ativo").checked:true;
+      if(!an){toast("Escreva o nome");return}
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ae)){toast("Escreva o utilizador (so letras e numeros)");return}
+      if(ae===String(FBU.email||"").toLowerCase()){toast("Este e o utilizador do administrador");return}
+      if(!db){return}
+      db.doc("acessos/"+ae).set({nome:an,email:ae,papel:"colaborador",ativo:aa,atualizado:Date.now()},{merge:true}).then(function(){toast("Utilizador guardado")}).catch(function(){toast("Nao foi possivel guardar")});
+      closeSheet();break}
+    case "askdelacesso":{var da=(S.acessos||[]).filter(function(x){return x.id===el.dataset.id})[0];if(da)sheetConfirm("Remover "+esc(da.nome)+"?","Perde o acesso a app. O que registou fica guardado.","delacesso",da.id);break}
+    case "delacesso":{if(db)db.doc("acessos/"+el.dataset.id).delete().then(function(){toast("Utilizador removido")}).catch(function(){toast("Nao foi possivel remover")});closeSheet();break}
     case "sheet-peca":sheetPeca();break;
     case "sheet-orc":sheetOrc();break;
     case "sheet-doc":sheetDoc(o);break;
@@ -1944,9 +2007,9 @@ window.__wr={S:S,go:go};
       <h2 id="inTitle">Bem-vindo de volta</h2>
       <p class="sub" id="inSub">Entra para ver as ordens de serviço de hoje.</p>
       <div class="fld" id="fName"><label for="inName">Nome</label><div class="inp" id="wName"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><input id="inName" name="name" type="text" autocomplete="name" autocapitalize="words" placeholder="O teu nome"></div></div>
-      <div class="fld"><label for="inEmail">Email</label>
+      <div class="fld"><label for="inEmail" id="inEmailLab">Utilizador</label>
         <div class="inp" id="wEmail"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-        <input id="inEmail" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="tu@oficina.co.mz"></div></div>
+        <input id="inEmail" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="admin"></div></div>
       <div class="fld"><label for="inPass">Palavra-passe</label>
         <div class="inp" id="wPass"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
         <input id="inPass" name="password" type="password" autocomplete="current-password" placeholder="••••••••">
@@ -2138,7 +2201,8 @@ function initLogin(){
   Card.addEventListener("submit",function(ev){
     ev.preventDefault();
     var email=E.value.trim().toLowerCase(),pw=P.value;
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return bad("Escreve um email válido","wEmail");
+    if(window.__fbAuth&&email&&email.indexOf("@")<0){email=email.replace(/\s+/g,"").replace(/[^a-z0-9._-]/g,"");if(email)email+="@beira-oficina.mz"}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return bad(window.__fbAuth?"Escreve o teu utilizador":"Escreve um email válido","wEmail");
     if(pw.length<6)return bad("A palavra-passe precisa de pelo menos 6 caracteres","wPass");
     var rem=$("inRem").checked;Go.disabled=true;
     if(mode==="create"){
