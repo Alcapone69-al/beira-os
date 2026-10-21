@@ -23,7 +23,7 @@
 <meta property="og:image" content="icon-512.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,600;1,700;1,800&display=swap">
 <script src="vendor/jspdf.umd.min.js"></script>
-<script src="firebase-config.js"></script>
+<script src="firebase-config.js?v=2"></script>
 <style>[hidden]{display:none!important}img{max-width:100%}</style>
 </head>
 <body>
@@ -1375,11 +1375,11 @@ function viewLogin(){
     (dm.length?'<div class="demo-hint"><b>Contas de exemplo</b> (palavra-passe '+DEMOPW+')<br>'+dm.map(function(x){return '<button data-act="fill" data-e="'+esc(x.email)+'" style="background:none;border:0;padding:2px 0;color:var(--focus);text-align:left">'+esc(x.email)+'</button> · '+esc(ROLES[x.papel])}).join("<br>")+'</div>':'')+'</div>';
 }
 function doLogin(email,pw,rem){
-  if(window.__fbAuth)return window.__fbAuth.signInWithEmailAndPassword(toEmail(email),pw).then(function(){return {user:FBU}},function(e){var c=(e&&e.code)||"";return {err:/network/.test(c)?"Sem ligação à internet":/too-many/.test(c)?"Muitas tentativas. Aguarde uns minutos":"E-mail ou palavra-passe errados"}});
+  if(window.__fbAuth)return window.__fbAuth.signInWithEmailAndPassword(toEmail(email),pw).then(function(){return {user:FBU}},function(e){var c=(e&&e.code)||"";return {err:/network/.test(c)?"Sem ligação à internet":/too-many/.test(c)?"Muitas tentativas. Aguarde uns minutos":"Utilizador ou palavra-passe errados"}});
   var now=Date.now();
   if(S.lock&&now<S.lock)return Promise.resolve({err:"Muitas tentativas. Aguarde "+Math.ceil((S.lock-now)/1000)+" segundos"});
   var u=S.users.filter(function(x){return norm(x.email)===norm(email)&&x.ativo!==false})[0];
-  var bad=function(){S.fails=(S.fails||0)+1;if(S.fails>=5){S.fails=0;S.lock=Date.now()+30000;return {err:"Muitas tentativas. Aguarde 30 segundos"}}return {err:"E-mail ou palavra-passe errados"}};
+  var bad=function(){S.fails=(S.fails||0)+1;if(S.fails>=5){S.fails=0;S.lock=Date.now()+30000;return {err:"Muitas tentativas. Aguarde 30 segundos"}}return {err:"Utilizador ou palavra-passe errados"}};
   if(!u)return Promise.resolve(bad());
   return hashPin(pw,u.salt).then(function(h){if(h!==u.hash)return bad();S.fails=0;loginAs(u,rem);return {user:u}});
 }

@@ -1,8 +1,8 @@
-const C="beira-os-v3";
+const C="beira-os-v4";
 /* Push com a app fechada (Firebase Cloud Messaging) */
 try{
  self.window=self;
- importScripts("vendor/firebase-app-compat.js","vendor/firebase-messaging-compat.js","firebase-config.js");
+ importScripts("vendor/firebase-app-compat.js","vendor/firebase-messaging-compat.js","firebase-config.js?v=2");
  if(self.WR_FIREBASE&&self.WR_FIREBASE.apiKey){
   firebase.initializeApp(self.WR_FIREBASE);
   firebase.messaging().onBackgroundMessage(p=>{
@@ -12,7 +12,7 @@ try{
  }
 }catch(e){}
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["./","icon-192.png","manifest.webmanifest"]).catch(()=>{})));self.skipWaiting()});
-self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x.indexOf("beira-os-")===0&&x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x.indexOf("beira-os-")===0&&x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()).then(()=>self.clients.matchAll({type:"window"}).then(l=>l.forEach(c=>c.navigate(c.url).catch(()=>{})))))});
 self.addEventListener("fetch",e=>{const r=e.request;if(r.method!=="GET")return;
  if(r.mode==="navigate"){e.respondWith(fetch(r).then(x=>{const y=x.clone();caches.open(C).then(c=>c.put("./",y));return x}).catch(()=>caches.match("./")));return}
  e.respondWith(caches.match(r).then(h=>{const n=fetch(r).then(x=>{if(x&&(x.ok||x.type==="opaque")){const y=x.clone();caches.open(C).then(c=>c.put(r,y))}return x}).catch(()=>h);return h||n}))});
